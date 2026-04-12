@@ -9,7 +9,7 @@ class Array:
         self._current = 0
 
     def __str__(self):
-        return f'Array{self._array}'
+        return f'Array({self._array})'
 
     def __setitem__(self, key: int, value: Any):
         key = self._get_key(key)
@@ -34,6 +34,9 @@ class Array:
             return True
 
         return False
+
+    def __len__(self):
+        return self._length
 
     @staticmethod
     def _check_length(length: int):
