@@ -3,22 +3,22 @@ from typing import Any, Optional, Self
 
 
 class Array:
-    def __init__(self, length: int, values: Optional[list[Any]] = None):
+    def __init__(self, length: int, values: Optional[list[Any]] = None) -> None:
         self._length = length
         self._array = self._fill_array(values)
         self._current = 0
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'Array({self._array})'
 
-    def __setitem__(self, key: int, value: Any):
+    def __setitem__(self, key: int, value: Any) -> None:
         key = self._get_key(key)
         if self._check_key(key):
             self._array[key] = value
         else:
             raise KeyError(f'your key is not in the division [0; {self._length})')
 
-    def __getitem__(self, item: int):
+    def __getitem__(self, item: int) -> Any:
         item = self._get_key(item)
 
         if self._check_key(item):
@@ -26,7 +26,7 @@ class Array:
         else:
             raise KeyError(f'your key is not in the division [0; {self._length})')
 
-    def __eq__(self, other: Self):
+    def __eq__(self, other: Self) -> bool:
         if self._length != other._length:
             return False
 
@@ -35,22 +35,34 @@ class Array:
 
         return False
 
-    def __len__(self):
+    def __iter__(self) -> Self:
+        self._current = 0
+        return self
+
+    def __next__(self) -> Any:
+        if self._current < self._length:
+            cur_value = self._array[self._current]
+            self._current += 1
+            return cur_value
+        else:
+            raise StopIteration
+
+    def __len__(self) -> int:
         return self._length
 
     @staticmethod
-    def _check_length(length: int):
+    def _check_length(length: int) -> None:
         if length <= 0:
             raise ValueError('length shuld be positive and not 0')
 
     @staticmethod
-    def _check_value(value: Optional[list[Any]]):
+    def _check_value(value: Optional[list[Any]]) -> bool:
         if not value:
             return False
 
         return True
 
-    def _fill_array(self, values: Optional[list[Any]]):
+    def _fill_array(self, values: Optional[list[Any]]) -> list[Any]:
         if self._check_value(values):
             array = copy.deepcopy(values)
 
@@ -64,29 +76,17 @@ class Array:
         else:
             return [None for _ in range(self._length)]
 
-    def _check_key(self, key: int):
+    def _check_key(self, key: int) -> bool:
         if 0 <= key < self._length:
             return True
 
         return False
 
-    def _get_key(self, key: int):
+    def _get_key(self, key: int) -> int:
         if key < 0:
             return self._length + key
 
         return key
-
-    def __iter__(self):
-        self._current = 0
-        return self
-
-    def __next__(self):
-        if self._current < self._length:
-            cur_value = self._array[self._current]
-            self._current += 1
-            return cur_value
-        else:
-            raise StopIteration
 
 
 if __name__ == "__main__":

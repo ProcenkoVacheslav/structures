@@ -4,7 +4,7 @@ from typing import Any, Self, Optional, Iterable
 class SparseNode:
     __slots__ = ('index', 'value', 'next')
 
-    def __init__(self, index: int, value: Any, next_node: Optional[Self] = None):
+    def __init__(self, index: int, value: Any, next_node: Optional[Self] = None) -> None:
         self.index = index
         self.value = value
         self.next = next_node
@@ -27,7 +27,7 @@ class SparseLinkedListArray:
             return curr, prev
         return None, prev
 
-    def __getitem__(self, index: int):
+    def __getitem__(self, index: int) -> Any:
         if index < 0 or index >= self._length:
             raise IndexError("Index out of range")
 
@@ -36,7 +36,7 @@ class SparseLinkedListArray:
             return node.value
         return self._default_value
 
-    def __setitem__(self, index: int, value):
+    def __setitem__(self, index: int, value) -> None:
         if index < 0 or index >= self._length:
             raise IndexError("Index out of range")
 
@@ -57,7 +57,7 @@ class SparseLinkedListArray:
                 prev.next = new_node
             self._size += 1
 
-    def _delete_node(self, index: int):
+    def _delete_node(self, index: int) -> None:
         node, prev = self._find_prev(index)
         if node is None:
             return
@@ -68,7 +68,7 @@ class SparseLinkedListArray:
             prev.next = node.next
         self._size -= 1
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self._length
 
     def not_null_elements(self) -> int:
@@ -80,7 +80,7 @@ class SparseLinkedListArray:
             yield curr.index, curr.value
             curr = curr.next
 
-    def __repr__(self):
+    def __str__(self) -> str:
         full_repr = []
         curr = self._head
         idx = 0
@@ -108,8 +108,8 @@ if __name__ == "__main__":
     print(len(sp))
     print(sp.not_null_elements())
 
-    for idx, val in sp.items():
-        print(f"sp[{idx}] = {val}")
+    for idx_, val in sp.items():
+        print(f"sp[{idx_}] = {val}")
 
     print(sp)
 
@@ -117,5 +117,5 @@ if __name__ == "__main__":
     print(sp.not_null_elements())
     print(sp[1])
 
-    for idx, val in sp.items():
-        print(f"sp[{idx}] = {val}")
+    for idx_, val in sp.items():
+        print(f"sp[{idx_}] = {val}")
