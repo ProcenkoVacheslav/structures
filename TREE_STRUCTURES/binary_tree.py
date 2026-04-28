@@ -83,16 +83,18 @@ class BinaryTree:
         for cur_value in value[1:]:
             self.append(cur_value)
 
-    def _find_min(self) -> TreeNode:
-        current = self._root
+    @staticmethod
+    def _find_min(node: TreeNode) -> TreeNode:
+        current = node
 
         while current.left:
             current = current.left
 
         return current
 
-    def _find_max(self) -> TreeNode:
-        current = self._root
+    @staticmethod
+    def _find_max(node: TreeNode) -> TreeNode:
+        current = node
 
         while current.right:
             current = current.right
@@ -160,11 +162,11 @@ class BinaryTree:
         return result
 
     def min(self) -> int:
-        node = self._find_min()
+        node = self._find_min(self._root)
         return node.value
 
     def max(self) -> int:
-        node = self._find_max()
+        node = self._find_max(self._root)
         return node.value
 
     def append(self, value: int) -> None:
@@ -180,11 +182,45 @@ class BinaryTree:
 
         parent_node, cur_node = self._fined(value)
 
-        if cur_node.left is None and cur_node.right is None:
+        if self.is_leaf(cur_node):
             if cur_node.value > parent_node.value:
                 parent_node.right = None
             else:
                 parent_node.left = None
+
+            return
+
+        if cur_node.left is not None and cur_node.right is None:
+            if cur_node.value > parent_node.value:
+                parent_node.right = cur_node.left
+            else:
+                parent_node.left = cur_node.left
+
+            return
+
+        if cur_node.right is not None and cur_node.left is None:
+            if cur_node.value > parent_node.value:
+                parent_node.right = cur_node.right
+            else:
+                parent_node.left = cur_node.right
+
+            return
+
+        if cur_node.right is not None and cur_node.left is not None:
+            if cur_node.value > parent_node.value:
+                pre_tree = cur_node.left
+
+                min_node = self._find_min(cur_node.right)
+
+                min_node.left = pre_tree
+                parent_node.right = cur_node.right
+            else:
+                pre_tree = cur_node.right
+
+                max_node = self._find_max(cur_node.left)
+
+                max_node.right = pre_tree
+                parent_node.left = cur_node.left
 
     def size(self) -> int:
         items = self._get_items()
@@ -234,9 +270,10 @@ class BinaryTree:
 
 
 if __name__ == "__main__":
-    tree = BinaryTree([2, 1, 6, 4, 8, 3, 5, 10, 20, 15])
+    tree = BinaryTree([2, 1, 6, 4, 3, 8, 7, 5, 10, 20, 25])
 
     print(tree)
+
     print(f'минимальное - {tree.min()}')
     print(f'максимальное - {tree.max()}')
     print(f'высота - {tree.height()}')
