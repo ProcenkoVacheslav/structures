@@ -1,7 +1,6 @@
 from collections import deque
 from typing import Optional, Self
 from multipledispatch import dispatch
-from math import log2, floor
 
 
 class TreeNode:
@@ -14,7 +13,7 @@ class TreeNode:
         return f'TreeNode({self.value})'
 
 
-class BinaryTree:
+class BinarySearchTree:
     def __init__(self, value: Optional[int | list[int]] = None) -> None:
         self._root = None
         self._create_root(value)
@@ -22,27 +21,54 @@ class BinaryTree:
 
     def __str__(self) -> str:
         if self._root is None:
-            return 'BinaryTree([])'
+            return 'BinarySearchTree([])'
 
-        result = self._get_items(self._root)
+        result = self._get_items()
 
-        return f'BinaryTree({result})'
-
-    def __len__(self) -> int:
-        return self.size()
+        return f'BinarySearchTree({result})'
 
     def __iter__(self) -> Self:
         self._current = 0
         return self
 
     def __next__(self) -> int:
-        items = self._get_items(self._root)
+        items = self._get_items()
         if self._current < len(items):
             cur_value = items[self._current]
             self._current += 1
             return cur_value
         else:
             raise StopIteration
+
+    def __len__(self) -> int:
+        return self.size()
+
+    def _get_items(self) -> list[int]:
+        result = []
+        queue = deque([self._root])
+
+        while queue:
+            node = queue.popleft()
+            result.append(node.value)
+
+            if node.left:
+                queue.append(node.left)
+            if node.right:
+                queue.append(node.right)
+
+        return result
+
+    def _add_recursive(self, node: TreeNode, value: int) -> None:
+        if value < node.value:
+            if node.left is None:
+                node.left = TreeNode(value)
+            else:
+                self._add_recursive(node.left, value)
+        else:
+            if node.right is None:
+                node.right = TreeNode(value)
+            else:
+                self._add_recursive(node.right, value)
 
     def _create_root(self, value: Optional[int | list[int]]) -> None:
         if value is None:
@@ -56,36 +82,37 @@ class BinaryTree:
         for cur_value in value[1:]:
             self.append(cur_value)
 
-    def _get_node_to_add(self) -> TreeNode:
-        queue = deque([self._root])
+    @staticmethod
+    def _find_min(node: TreeNode) -> TreeNode:
+        current = node
 
-        while queue:
-            node = queue.popleft()
-            if self.is_leaf(node) or self._has_one_child(node):
-                return node
+        while current.left:
+            current = current.left
 
-            queue.append(node.left)
-            queue.append(node.right)
+        return current
 
     @staticmethod
-    def _has_one_child(node: TreeNode) -> bool:
-        return (node.left is None) ^ (node.right is None)
+    def _find_max(node: TreeNode) -> TreeNode:
+        current = node
 
-    @staticmethod
-    def _get_items(node: TreeNode) -> list[int]:
-        result = []
-        queue = deque([node])
+        while current.right:
+            current = current.right
 
-        while queue:
-            node = queue.popleft()
-            result.append(node.value)
+        return current
 
-            if node.left:
-                queue.append(node.left)
-            if node.right:
-                queue.append(node.right)
+    def _fined(self, value: int) -> tuple[TreeNode, TreeNode]:
+        parent = None
+        current = self._root
 
-        return result
+        while current.value != value:
+            if value > current.value:
+                parent = current
+                current = current.right
+            elif value < current.value:
+                parent = current
+                current = current.left
+
+        return parent, current
 
     def _recursive_size(self, node: TreeNode, level: int) -> int:
         if node.left is None and node.right is None:
@@ -133,96 +160,100 @@ class BinaryTree:
 
         return result
 
-    def _fined(self, value: int) -> tuple[TreeNode, TreeNode]:
-        queue = deque([self._root])
-
-        while queue:
-            node = queue.popleft()
-
-            if node.left.value == value:
-                return node, node.left
-            if node.right.value == value:
-                return node, node.right
-
-            if node.left:
-                queue.append(node.left)
-            if node.right:
-                queue.append(node.right)
-
     def min(self) -> int:
-        return min(self._get_items(self._root))
+        node = self._find_min(self._root)
+        return node.value
 
     def max(self) -> int:
-        return max(self._get_items(self._root))
+        node = self._find_max(self._root)
+        return node.value
 
     def append(self, value: int) -> None:
         if self._root is None:
             self._root = TreeNode(value)
-            return
-
-        node = self._get_node_to_add()
-        if node.left is None:
-            node.left = TreeNode(value)
         else:
-            node.right = TreeNode(value)
+            self._add_recursive(self._root, value)
 
     def delete(self, value: int) -> None:
         if self._root.value == value:
             self._root = None
             return
 
-        parent, node = self._fined(value)
+        parent_node, cur_node = self._fined(value)
 
-        if self.is_leaf(node):
-            if parent.left.value == node.value:
-                parent.left = None
+        if self.is_leaf(cur_node):
+            if cur_node.value > parent_node.value:
+                parent_node.right = None
             else:
-                parent.right = None
+                parent_node.left = None
+
             return
 
-        if self._has_one_child(node):
-            parent.left = node.left
-            return
-
-        if node.left is not None and node.right is not None:
-            items = self._get_items(node)
-
-            if parent.left.value == node.value:
-                parent.left = None
+        if cur_node.left is not None and cur_node.right is None:
+            if cur_node.value > parent_node.value:
+                parent_node.right = cur_node.left
             else:
-                parent.right = None
-
-            for item in items[1:]:
-                self.append(item)
+                parent_node.left = cur_node.left
 
             return
+
+        if cur_node.right is not None and cur_node.left is None:
+            if cur_node.value > parent_node.value:
+                parent_node.right = cur_node.right
+            else:
+                parent_node.left = cur_node.right
+
+            return
+
+        if cur_node.right is not None and cur_node.left is not None:
+            if cur_node.value > parent_node.value:
+                pre_tree = cur_node.left
+
+                min_node = self._find_min(cur_node.right)
+
+                min_node.left = pre_tree
+                parent_node.right = cur_node.right
+            else:
+                pre_tree = cur_node.right
+
+                max_node = self._find_max(cur_node.left)
+
+                max_node.right = pre_tree
+                parent_node.left = cur_node.left
 
     def size(self) -> int:
-        items = self._get_items(self._root)
+        items = self._get_items()
         return len(items)
 
     def height(self) -> int:
-        size = self.size()
-        return floor(log2(size)) + 1
+        if self.is_empty():
+            return 0
 
-    def depth(self, node: TreeNode) -> int:
+        return self._recursive_size(self._root, 1)
+
+    def depth(self, node) -> int:
         return self._recursive_size(node, 1)
 
     def is_empty(self) -> bool:
-        return self._root is None
+        if self._root is None:
+            return True
+        return False
 
     @dispatch(int)
     def is_leaf(self, value: int) -> bool:
-        _, node = self._fined(value)
-        return node.left is None and node.right is None
+        _, current = self._fined(value)
+        if current.left is None and current.right is None:
+            return True
+
+        return False
 
     @dispatch(TreeNode)
     def is_leaf(self, node: TreeNode) -> bool:
         return node.left is None and node.right is None
 
     def search(self, value: int) -> TreeNode:
-        _, node = self._fined(value)
-        return node
+        _, current = self._fined(value)
+        return current
 
     def preorder(self) -> list[int]:
         return self._preorder_recursive(self._root, [])
@@ -234,11 +265,11 @@ class BinaryTree:
         return self._postorder_recursive(self._root, [])
 
     def level_order(self) -> list[int]:
-        return self._get_items(self._root)
+        return self._get_items()
 
 
 if __name__ == "__main__":
-    tree = BinaryTree([1, 2, 3, 4, 5, 6, 7, 8, 9])
+    tree = BinarySearchTree([2, 1, 6, 4, 3, 8, 7, 5, 10, 20, 25])
 
     print(tree)
 
