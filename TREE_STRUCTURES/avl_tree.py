@@ -7,7 +7,7 @@ class TreeNode:
         self.left = None
         self.right = None
         self.value = value
-        self.height = 1  # КРИТИЧНО ДЛЯ AVL: Новый узел всегда имеет высоту 1
+        self.height = 1
 
     def __str__(self) -> str:
         return f'TreeNode({self.value})'
@@ -43,7 +43,7 @@ class AVLTree:
             raise StopIteration
 
     def _create_tree(self, value: Optional[int | list[int]]):
-        if value is not None:  # Явная проверка
+        if value is not None:
             if isinstance(value, int):
                 self._create_root(value)
             else:
@@ -169,8 +169,62 @@ class AVLTree:
         result.append(node.value)
         return result
 
+    @staticmethod
+    def _get_min_value_node(node: TreeNode) -> TreeNode:
+        current = node
+        while current.left is not None:
+            current = current.left
+        return current
+
+    def _delete_recursive(self, node: Optional[TreeNode], value: int) -> Optional[TreeNode]:
+        if node is None:
+            return node
+
+        if value < node.value:
+            node.left = self._delete_recursive(node.left, value)
+        elif value > node.value:
+            node.right = self._delete_recursive(node.right, value)
+        else:
+            if node.left is None:
+                temp = node.right
+                node = None
+                return temp
+            elif node.right is None:
+                temp = node.left
+                node = None
+                return temp
+
+            temp = self._get_min_value_node(node.right)
+
+            node.value = temp.value
+
+            node.right = self._delete_recursive(node.right, temp.value)
+
+        if node is None:
+            return node
+
+        node.height = 1 + max(self._node_height(node.left), self._node_height(node.right))
+
+        balance = self._get_balance(node)
+
+        if balance > 1 and self._get_balance(node.left) >= 0:
+            return self._rotate_right(node)
+
+        if balance > 1 and self._get_balance(node.left) < 0:
+            node.left = self._rotate_left(node.left)
+            return self._rotate_right(node)
+
+        if balance < -1 and self._get_balance(node.right) <= 0:
+            return self._rotate_left(node)
+
+        if balance < -1 and self._get_balance(node.right) > 0:
+            node.right = self._rotate_right(node.right)
+            return self._rotate_left(node)
+
+        return node
+
     def delete(self, value: int):
-        ...
+        self._root = self._delete_recursive(self._root, value)
 
     def search(self, value: int):
         cur_node = self._root
@@ -204,6 +258,9 @@ if __name__ == "__main__":
 
     new_node = avl_tree.search(7)
     print(f'FINED NODE:\t {new_node}')
+
+    avl_tree.delete(7)
+    print(avl_tree)
 
     print(f'HEIGHT of tree:\t {avl_tree.height()}')
 
