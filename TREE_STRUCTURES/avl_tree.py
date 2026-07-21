@@ -3,7 +3,7 @@ from typing import Optional, Self
 
 
 class TreeNode:
-    def __init__(self, value: int):
+    def __init__(self, value: int) -> None:
         self.left = None
         self.right = None
         self.value = value
@@ -19,13 +19,13 @@ class AVLTree:
         self._create_tree(value)
         self._current = 0
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self._root is None:
             return 'AVLTree([])'
         result = self._get_items()
         return f'AVLTree({result})'
 
-    def __len__(self):
+    def __len__(self) -> int:
         result = self._get_items()
         return len(result)
 
@@ -42,17 +42,17 @@ class AVLTree:
         else:
             raise StopIteration
 
-    def _create_tree(self, value: Optional[int | list[int]]):
+    def _create_tree(self, value: Optional[int | list[int]]) -> None:
         if value is not None:
             if isinstance(value, int):
                 self._create_root(value)
             else:
                 self._create_full_tree(value)
 
-    def _create_root(self, value: int):
+    def _create_root(self, value: int) -> None:
         self._root = TreeNode(value)
 
-    def _create_full_tree(self, value: list[int]):
+    def _create_full_tree(self, value: list[int]) -> None:
         for number in value:
             self.append(number)
 
@@ -122,7 +122,7 @@ class AVLTree:
 
         return node
 
-    def append(self, value: int):
+    def append(self, value: int) -> None:
         self._root = self._append_recursive(self._root, value)
 
     def _get_items(self) -> list[int]:
@@ -223,10 +223,10 @@ class AVLTree:
 
         return node
 
-    def delete(self, value: int):
+    def delete(self, value: int) -> None:
         self._root = self._delete_recursive(self._root, value)
 
-    def search(self, value: int):
+    def search(self, value: int) -> TreeNode:
         cur_node = self._root
         while cur_node and cur_node.value != value:
             if value > cur_node.value:
@@ -235,7 +235,7 @@ class AVLTree:
                 cur_node = cur_node.left
         return cur_node
 
-    def height(self):
+    def height(self) -> int:
         return self._node_height(self._root)
 
     def preorder(self) -> list[int]:
